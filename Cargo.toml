@@ -34,7 +34,8 @@ wee_alloc = { version = "0.4.2", optional = true }
 # like the DOM.
 [dependencies.web-sys]
 version = "0.3.22"
-features = ["console"]
+features = ["console", "Window", "Document", "HtmlCanvasElement", "CanvasRenderingContext2d", "Element"]
+
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -42,6 +43,8 @@ features = ["console"]
 # in debug mode.
 [target."cfg(debug_assertions)".dependencies]
 console_error_panic_hook = "0.1.5"
+rand = "0.8.4"
+getrandom = {version = "0.2.3", features = ["js"]}
 
 # These crates are used for running unit tests.
 [dev-dependencies]
