@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use web_sys::Window;
+use web_sys::{Document, Window};
 
 macro_rules! log {
     ($($t:tt)*) => {
@@ -9,4 +9,10 @@ macro_rules! log {
 
 pub fn window() -> Result<Window> {
     web_sys::window().ok_or_else(|| anyhow!("No Window Found!"))
+}
+
+pub fn document() -> Result<Document> {
+    window()?
+        .document()
+        .ok_or_else(|| anyhow!("No Document Found"))
 }

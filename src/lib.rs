@@ -40,7 +40,7 @@ pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
     let window = browser::window().expect("No Window Found");
-    let document = window.document().unwrap();
+    let document = browser::document().expect("No Document Found");
     let canvas = document
         .get_element_by_id("canvas")
         .unwrap()
