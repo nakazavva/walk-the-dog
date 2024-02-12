@@ -41,11 +41,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let window = browser::window().expect("No Window Found");
     let document = browser::document().expect("No Document Found");
-    let canvas = document
-        .get_element_by_id("canvas")
-        .unwrap()
-        .dyn_into::<web_sys::HtmlCanvasElement>()
-        .unwrap();
+    let canvas = browser::canvas().expect("No Canvas Found");
     let context = canvas
         .get_context("2d")
         .unwrap()
