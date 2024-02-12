@@ -44,7 +44,7 @@ pub fn main_js() -> Result<(), JsValue> {
     let canvas = browser::canvas().expect("No Canvas Found");
     let context = browser::context().expect("No Context Found");
 
-    wasm_bindgen_futures::spawn_local(async move {
+    browser::spawn_local(async move {
         let json = fetch_json("rhb.json")
             .await
             .expect("Could not fetch rhb.json");

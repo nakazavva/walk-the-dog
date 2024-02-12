@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use std::future::Future;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, Window};
 
@@ -38,4 +39,11 @@ pub fn context() -> Result<CanvasRenderingContext2d> {
                 element
             )
         })
+}
+
+pub fn spawn_local<F>(future: F)
+where
+    F: Future<Output = ()> + 'static,
+{
+    wasm_bindgen_futures::spawn_local(future);
 }
