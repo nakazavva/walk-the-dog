@@ -26,29 +26,17 @@ struct Sheet {
     frames: HashMap<String, Cell>,
 }
 
-// When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
-// allocator.
-//
-// If you don't want to use `wee_alloc`, you can safely delete this.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-// This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
-
-    let window = browser::window().expect("No Window Found");
-    let document = browser::document().expect("No Document Found");
-    let canvas = browser::canvas().expect("No Canvas Found");
-    let context = browser::context().expect("No Context Found");
+    let context = browser::context().expect("Could not get browser context");
 
     browser::spawn_local(async move {
-        let json = browser::fetch_json("rhb.json")
+        let sheet: Sheet = browser::fetch_json("rhb.json")
             .await
-            .expect("Could not fetch rhb.json");
-        let sheet: Sheet = json.into_serde().expect("Could not parse rhb.json");
+            .expect("Could not fetch rhb.json")
+            .into_serde()
+            .expect("Could not convert rhb.json into a Sheet structure");
 
         let (success_tx, success_rx) = futures::channel::oneshot::channel::<Result<(), JsValue>>();
         let success_tx = Rc::new(Mutex::new(Some(success_tx)));
