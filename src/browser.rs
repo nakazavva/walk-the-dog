@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use wasm_bindgen::JsCast;
-use web_sys::{Document, HtmlCanvasElement, Window};
+use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, Window};
 
 macro_rules! log {
     ($($t:tt)*) => {
@@ -24,4 +24,18 @@ pub fn canvas() -> Result<HtmlCanvasElement> {
         .ok_or_else(|| anyhow!("No Canvas Element found with ID 'canvas'"))?
         .dyn_into::<web_sys::HtmlCanvasElement>()
         .map_err(|element| anyhow!("Error converting {:#?} to HtmlCanvasElement", element))
+}
+
+pub fn context() -> Result<CanvasRenderingContext2d> {
+    canvas()?
+        .get_context("2d")
+        .map_err(|js_value| anyhow!("Error getting 2d context {:#?}", js_value))?
+        .ok_or_else(|| anyhow!("No 2d context found"))?
+        .dyn_into::<web_sys::CanvasRenderingContext2d>()
+        .map_err(|element| {
+            anyhow!(
+                "Error converting {:#?} to CanvasRenderingContext2d",
+                element
+            )
+        })
 }

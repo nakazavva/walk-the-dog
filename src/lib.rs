@@ -42,12 +42,7 @@ pub fn main_js() -> Result<(), JsValue> {
     let window = browser::window().expect("No Window Found");
     let document = browser::document().expect("No Document Found");
     let canvas = browser::canvas().expect("No Canvas Found");
-    let context = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()
-        .unwrap();
+    let context = browser::context().expect("No Context Found");
 
     wasm_bindgen_futures::spawn_local(async move {
         let json = fetch_json("rhb.json")
