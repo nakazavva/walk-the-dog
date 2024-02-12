@@ -98,10 +98,12 @@ pub fn main_js() -> Result<(), JsValue> {
                 sprite.frame.h.into(),
             );
         }) as Box<dyn FnMut()>);
-        window.set_interval_with_callback_and_timeout_and_arguments_0(
-            interval_callback.as_ref().unchecked_ref(),
-            50,
-        );
+        browser::window()
+            .unwrap()
+            .set_interval_with_callback_and_timeout_and_arguments_0(
+                interval_callback.as_ref().unchecked_ref(),
+                50,
+            );
         interval_callback.forget();
     });
 
