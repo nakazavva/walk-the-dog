@@ -31,11 +31,12 @@ pub fn main_js() -> Result<(), JsValue> {
     let context = browser::context().expect("Could not get browser context");
 
     browser::spawn_local(async move {
-        let sheet: Sheet = browser::fetch_json("rhb.json")
-            .await
-            .expect("Could not fetch rhb.json")
-            .into_serde()
-            .expect("Could not convert rhb.json into a Sheet structure");
+        let sheet: Sheet = serde_wasm_bindgen::from_value(
+            browser::fetch_json("rhb.json")
+                .await
+                .expect("Could not fetch rhb.json"),
+        )
+        .expect("Could not convert rhb.json into a Sheet structure");
 
         let image = engine::load_image("rhb.png")
             .await
