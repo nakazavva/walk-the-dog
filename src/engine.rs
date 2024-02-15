@@ -1,5 +1,6 @@
 use crate::browser;
 use anyhow::{anyhow, Result};
+use async_trait::async_trait;
 use futures::channel::oneshot::channel;
 use std::{cell::RefCell, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
@@ -32,7 +33,9 @@ pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     Ok(image)
 }
 
+#[async_trait(?Send)]
 pub trait Game {
+    async fn initialize(&self) -> Result<Box<dyn Game>>;
     fn update(&mut self);
     fn draw(&self, context: &CanvasRenderingContext2d);
 }
@@ -45,7 +48,8 @@ pub struct GameLoop {
 type SharedLoopClosure = Rc<RefCell<Option<browser::LoopClosure>>>;
 
 impl GameLoop {
-    pub async fn start(mut game: impl Game + 'static) -> Result<()> {
+    pub async fn start(game: impl Game + 'static) -> Result<()> {
+        let mut game = game.initialize().await?;
         let mut game_loop = GameLoop {
             last_frame: browser::now()?,
             accumulated_delta: 0.0,
