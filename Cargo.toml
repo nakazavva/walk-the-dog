@@ -48,6 +48,7 @@ features = [
   "Response",
   "Window",
   "console",
+  "Performance",
 ]
 
 
