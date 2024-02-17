@@ -47,9 +47,10 @@ impl WalkTheDog {
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
-        let sheet =
-            Some(serde_wasm_bindgen::from_value(browser::fetch_json("rhb.json").await?).unwrap());
-        let image = Some(engine::load_image("rhb.png").await?);
+        let sheet = Some(
+            serde_wasm_bindgen::from_value(browser::fetch_json("/static/rhb.json").await?).unwrap(),
+        );
+        let image = Some(engine::load_image("/static/rhb.png").await?);
 
         Ok(Box::new(WalkTheDog {
             image,
