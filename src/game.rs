@@ -2,13 +2,13 @@ use crate::{
     browser, engine,
     engine::{Game, KeyState, Point, Rect, Renderer},
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use serde::Deserialize;
 use std::collections::HashMap;
 use web_sys::HtmlImageElement;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct SheetRect {
     x: u16,
     y: u16,
@@ -16,14 +16,161 @@ struct SheetRect {
     h: u16,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Cell {
     frame: SheetRect,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Sheet {
     frames: HashMap<String, Cell>,
+}
+
+use self::red_hat_boy_states::*;
+
+mod red_hat_boy_states {
+    use crate::engine::Point;
+    const FLOOR: i16 = 475;
+    const IDLE_FRAME_NAME: &str = "Idle";
+    const RUNNING_FRAME_NAME: &str = "Run";
+
+    #[derive(Copy, Clone)]
+    pub struct Idle;
+
+    #[derive(Copy, Clone)]
+    pub struct Running;
+
+    #[derive(Copy, Clone)]
+    pub struct RedHatBoyState<S> {
+        context: RedHatBoyContext,
+        _state: S,
+    }
+
+    impl<S> RedHatBoyState<S> {
+        pub fn context(&self) -> &RedHatBoyContext {
+            &self.context
+        }
+    }
+
+    #[derive(Copy, Clone)]
+    pub struct RedHatBoyContext {
+        pub frame: u8,
+        pub position: Point,
+        pub velocity: Point,
+    }
+
+    impl RedHatBoyState<Idle> {
+        pub fn new() -> Self {
+            RedHatBoyState {
+                context: RedHatBoyContext {
+                    frame: 0,
+                    position: Point { x: 0, y: FLOOR },
+                    velocity: Point { x: 0, y: 0 },
+                },
+                _state: Idle {},
+            }
+        }
+        pub fn run(self) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context,
+                _state: Running,
+            }
+        }
+
+        pub fn frame_name(&self) -> &str {
+            IDLE_FRAME_NAME
+        }
+    }
+
+    impl RedHatBoyState<Running> {
+        pub fn frame_name(&self) -> &str {
+            RUNNING_FRAME_NAME
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+enum RedHatBoyStateMachine {
+    Idle(RedHatBoyState<Idle>),
+    Running(RedHatBoyState<Running>),
+}
+
+pub enum Event {
+    Run,
+}
+
+impl RedHatBoyStateMachine {
+    fn transition(self, event: Event) -> Self {
+        match (self, event) {
+            (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
+            _ => self,
+        }
+    }
+    fn frame_name(&self) -> &str {
+        match self {
+            RedHatBoyStateMachine::Idle(state) => state.frame_name(),
+            RedHatBoyStateMachine::Running(state) => state.frame_name(),
+        }
+    }
+
+    fn context(&self) -> &RedHatBoyContext {
+        match self {
+            RedHatBoyStateMachine::Idle(state) => &state.context(),
+            RedHatBoyStateMachine::Running(state) => &state.context(),
+        }
+    }
+}
+
+impl From<RedHatBoyState<Running>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Running>) -> Self {
+        RedHatBoyStateMachine::Running(state)
+    }
+}
+
+struct RedHatBoy {
+    state_machine: RedHatBoyStateMachine,
+    sprite_sheet: Sheet,
+    image: HtmlImageElement,
+}
+
+impl RedHatBoy {
+    fn new(sprite_sheet: Sheet, image: HtmlImageElement) -> Self {
+        RedHatBoy {
+            state_machine: RedHatBoyStateMachine::Idle(RedHatBoyState::new()),
+            sprite_sheet,
+            image,
+        }
+    }
+
+    fn draw(&self, renderer: &Renderer) {
+        let frame_name = format!(
+            "{} ({}).png",
+            self.state_machine.frame_name(),
+            (self.state_machine.context().frame / 3) + 1
+        );
+
+        let sprite = self
+            .sprite_sheet
+            .frames
+            .get(&frame_name)
+            .expect("Cell not found");
+
+        renderer.draw_image(
+            &self.image,
+            &Rect {
+                x: sprite.frame.x.into(),
+                y: sprite.frame.y.into(),
+                width: sprite.frame.w.into(),
+                height: sprite.frame.h.into(),
+            },
+            &Rect {
+                x: self.state_machine.context().position.x.into(),
+                y: self.state_machine.context().position.y.into(),
+                width: sprite.frame.w.into(),
+                height: sprite.frame.h.into(),
+            },
+        );
+    }
 }
 
 pub struct WalkTheDog {
@@ -31,6 +178,7 @@ pub struct WalkTheDog {
     sheet: Option<Sheet>,
     frame: u8,
     position: Point,
+    rhb: Option<RedHatBoy>,
 }
 
 impl WalkTheDog {
@@ -40,6 +188,7 @@ impl WalkTheDog {
             sheet: None,
             frame: 0,
             position: Point { x: 0, y: 0 },
+            rhb: None,
         }
     }
 }
@@ -53,10 +202,14 @@ impl Game for WalkTheDog {
         let image = Some(engine::load_image("/static/rhb.png").await?);
 
         Ok(Box::new(WalkTheDog {
-            image,
-            sheet,
+            image: image.clone(),
+            sheet: sheet.clone(),
             position: self.position,
             frame: self.frame,
+            rhb: Some(RedHatBoy::new(
+                sheet.clone().ok_or_else(|| anyhow!("No Sheet Present"))?,
+                image.clone().ok_or_else(|| anyhow!("No Image Present"))?,
+            )),
         }))
     }
     fn update(&mut self, keystate: &KeyState) {
@@ -114,5 +267,6 @@ impl Game for WalkTheDog {
                 },
             )
         });
+        self.rhb.as_ref().unwrap().draw(renderer);
     }
 }
