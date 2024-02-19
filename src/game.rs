@@ -69,6 +69,8 @@ mod red_hat_boy_states {
             } else {
                 self.frame = 0;
             }
+            self.position.x += self.velocity.x;
+            self.position.y += self.velocity.y;
             self
         }
     }
