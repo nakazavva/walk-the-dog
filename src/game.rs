@@ -30,9 +30,12 @@ use self::red_hat_boy_states::*;
 
 mod red_hat_boy_states {
     use crate::engine::Point;
+
     const FLOOR: i16 = 475;
     const IDLE_FRAME_NAME: &str = "Idle";
     const RUNNING_FRAME_NAME: &str = "Run";
+    const IDLE_FRAMES: u8 = 29;
+    const RUNNING_FRAMES: u8 = 23;
 
     #[derive(Copy, Clone)]
     pub struct Idle;
@@ -42,7 +45,7 @@ mod red_hat_boy_states {
 
     #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
-        pub context: RedHatBoyContext,
+        context: RedHatBoyContext,
         _state: S,
     }
 
@@ -91,11 +94,18 @@ mod red_hat_boy_states {
         pub fn frame_name(&self) -> &str {
             IDLE_FRAME_NAME
         }
+
+        pub fn update(&mut self) {
+            self.context = self.context.update(IDLE_FRAMES)
+        }
     }
 
     impl RedHatBoyState<Running> {
         pub fn frame_name(&self) -> &str {
             RUNNING_FRAME_NAME
+        }
+        pub fn update(&mut self) {
+            self.context = self.context.update(RUNNING_FRAMES)
         }
     }
 }
@@ -109,9 +119,6 @@ enum RedHatBoyStateMachine {
 pub enum Event {
     Run,
 }
-
-const IDLE_FRAMES: u8 = 29;
-const RUNNING_FRAMES: u8 = 23;
 
 impl RedHatBoyStateMachine {
     fn transition(self, event: Event) -> Self {
@@ -137,11 +144,11 @@ impl RedHatBoyStateMachine {
     fn update(self) -> Self {
         match self {
             RedHatBoyStateMachine::Idle(mut state) => {
-                state.context = state.context.update(IDLE_FRAMES);
+                state.update();
                 RedHatBoyStateMachine::Idle(state)
             }
             RedHatBoyStateMachine::Running(mut state) => {
-                state.context = state.context.update(RUNNING_FRAMES);
+                state.update();
                 RedHatBoyStateMachine::Running(state)
             }
         }
