@@ -222,6 +222,10 @@ impl RedHatBoy {
     fn update(&mut self) {
         self.state_machine = self.state_machine.update();
     }
+
+    fn run_right(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::Run);
+    }
 }
 
 pub struct WalkTheDog {
@@ -273,6 +277,7 @@ impl Game for WalkTheDog {
         }
         if keystate.is_pressed("ArrowRight") {
             velocity.x += 3;
+            self.rhb.as_mut().unwrap().run_right();
         }
         if keystate.is_pressed("ArrowLeft") {
             velocity.x -= 3;
