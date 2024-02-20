@@ -36,6 +36,7 @@ mod red_hat_boy_states {
     const RUNNING_FRAME_NAME: &str = "Run";
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
+    const RUNNING_SPEED: i16 = 3;
 
     #[derive(Copy, Clone)]
     pub struct Idle;
@@ -73,9 +74,14 @@ mod red_hat_boy_states {
             self.position.y += self.velocity.y;
             self
         }
-        
-        pub fn reset_frame(mu self) -> Self {
+
+        pub fn reset_frame(mut self) -> Self {
             self.frame = 0;
+            self
+        }
+
+        fn run_right(mut self) -> Self {
+            self.velocity.x = RUNNING_SPEED;
             self
         }
     }
@@ -93,7 +99,7 @@ mod red_hat_boy_states {
         }
         pub fn run(self) -> RedHatBoyState<Running> {
             RedHatBoyState {
-                context: self.context.reset_frame(),
+                context: self.context.reset_frame().run_right(),
                 _state: Running,
             }
         }
