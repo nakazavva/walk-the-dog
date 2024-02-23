@@ -113,8 +113,9 @@ mod red_hat_boy_states {
             IDLE_FRAME_NAME
         }
 
-        pub fn update(&mut self) {
-            self.context = self.context.update(IDLE_FRAMES)
+        pub fn update(mut self) -> Self {
+            self.context = self.context.update(IDLE_FRAMES);
+            self
         }
     }
 
@@ -122,8 +123,9 @@ mod red_hat_boy_states {
         pub fn frame_name(&self) -> &str {
             RUNNING_FRAME_NAME
         }
-        pub fn update(&mut self) {
-            self.context = self.context.update(RUNNING_FRAMES)
+        pub fn update(mut self) -> Self {
+            self.context = self.context.update(RUNNING_FRAMES);
+            self
         }
         pub fn slide(self) -> RedHatBoyState<Sliding> {
             RedHatBoyState {
@@ -153,6 +155,7 @@ enum RedHatBoyStateMachine {
 pub enum Event {
     Run,
     Slide,
+    Update,
 }
 
 impl RedHatBoyStateMachine {
@@ -160,6 +163,8 @@ impl RedHatBoyStateMachine {
         match (self, event) {
             (RedHatBoyStateMachine::Idle(state), Event::Run) => state.run().into(),
             (RedHatBoyStateMachine::Running(state), Event::Slide) => state.slide().into(),
+            (RedHatBoyStateMachine::Idle(state), Event::Update) => state.update().into(),
+            (RedHatBoyStateMachine::Running(state), Event::Update) => state.update().into(),
             _ => self,
         }
     }
@@ -180,20 +185,13 @@ impl RedHatBoyStateMachine {
     }
 
     fn update(self) -> Self {
-        match self {
-            RedHatBoyStateMachine::Idle(mut state) => {
-                state.update();
-                RedHatBoyStateMachine::Idle(state)
-            }
-            RedHatBoyStateMachine::Running(mut state) => {
-                state.update();
-                RedHatBoyStateMachine::Running(state)
-            }
-            RedHatBoyStateMachine::Sliding(mut state) => {
-                state.update();
-                RedHatBoyStateMachine::Sliding(state)
-            }
-        }
+        self.transition(Event::Update)
+    }
+}
+
+impl From<RedHatBoyState<Idle>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<Idle>) -> Self {
+        RedHatBoyStateMachine::Idle(state)
     }
 }
 
