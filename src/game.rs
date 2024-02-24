@@ -291,42 +291,48 @@ impl RedHatBoy {
     }
 }
 
-pub struct WalkTheDog {
-    rhb: Option<RedHatBoy>,
+pub enum WalkTheDog {
+    Loading,
+    Loaded(RedHatBoy),
 }
 
 impl WalkTheDog {
     pub fn new() -> Self {
-        Self { rhb: None }
+        WalkTheDog::Loading
     }
 }
 
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
-        let sheet = Some(
-            serde_wasm_bindgen::from_value(browser::fetch_json("/static/rhb.json").await?).unwrap(),
-        );
-        let image = Some(engine::load_image("/static/rhb.png").await?);
-
-        Ok(Box::new(WalkTheDog {
-            rhb: Some(RedHatBoy::new(
-                sheet.clone().ok_or_else(|| anyhow!("No Sheet Present"))?,
-                image.clone().ok_or_else(|| anyhow!("No Image Present"))?,
-            )),
-        }))
+        match self {
+            WalkTheDog::Loading => {
+                let sheet = Some(
+                    serde_wasm_bindgen::from_value(browser::fetch_json("/static/rhb.json").await?)
+                        .unwrap(),
+                );
+                let image = Some(engine::load_image("/static/rhb.png").await?);
+                let rhb = RedHatBoy::new(
+                    sheet.clone().ok_or_else(|| anyhow!("No Sheet Present"))?,
+                    image.clone().ok_or_else(|| anyhow!("No Image Present"))?,
+                );
+                Ok(Box::new(WalkTheDog::Loaded(rhb)))
+            }
+            WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized!")),
+        }
     }
     fn update(&mut self, keystate: &KeyState) {
-        if keystate.is_pressed("ArrowDown") {
-            self.rhb.as_mut().unwrap().slide();
+        if let WalkTheDog::Loaded(rhb) = self {
+            if keystate.is_pressed("ArrowDown") {
+                rhb.slide();
+            }
+            if keystate.is_pressed("ArrowUp") {}
+            if keystate.is_pressed("ArrowRight") {
+                rhb.run_right();
+            }
+            if keystate.is_pressed("ArrowLeft") {}
+            rhb.update();
         }
-        if keystate.is_pressed("ArrowUp") {}
-        if keystate.is_pressed("ArrowRight") {
-            self.rhb.as_mut().unwrap().run_right();
-        }
-        if keystate.is_pressed("ArrowLeft") {}
-
-        self.rhb.as_mut().unwrap().update();
     }
     fn draw(&self, renderer: &Renderer) {
         renderer.clear(&Rect {
@@ -335,6 +341,9 @@ impl Game for WalkTheDog {
             width: 600.0,
             height: 600.0,
         });
-        self.rhb.as_ref().unwrap().draw(renderer);
+
+        if let WalkTheDog::Loaded(rhb) = self {
+            rhb.draw(renderer);
+        }
     }
 }
