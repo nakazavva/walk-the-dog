@@ -85,6 +85,9 @@ mod red_hat_boy_states {
             }
             self.position.x += self.velocity.x;
             self.position.y += self.velocity.y;
+            if self.position.y > FLOOR {
+                self.position.y = FLOOR;
+            }
             self
         }
 
@@ -183,10 +186,25 @@ mod red_hat_boy_states {
         pub fn frame_name(&self) -> &str {
             JUMPING_FRAME_NAME
         }
-        pub fn update(mut self) -> Self {
-            self.context = self.context.update(JUMPING_FRAMES);
-            self
+        pub fn update(self) -> JumpingEndState {
+            self.context.update(JUMPING_FRAMES);
+            if self.context.position.y >= FLOOR {
+                JumpingEndState::Landing(self.land())
+            } else {
+                JumpingEndState::Jumping(self)
+            }
         }
+        pub fn land(self) -> RedHatBoyState<Running> {
+            RedHatBoyState {
+                context: self.context.reset_frame(),
+                _state: Running,
+            }
+        }
+    }
+
+    pub enum JumpingEndState {
+        Jumping(RedHatBoyState<Jumping>),
+        Landing(RedHatBoyState<Running>),
     }
 }
 
@@ -270,6 +288,15 @@ impl From<SlidingEndState> for RedHatBoyStateMachine {
 impl From<RedHatBoyState<Jumping>> for RedHatBoyStateMachine {
     fn from(state: RedHatBoyState<Jumping>) -> Self {
         RedHatBoyStateMachine::Jumping(state)
+    }
+}
+
+impl From<JumpingEndState> for RedHatBoyStateMachine {
+    fn from(state: JumpingEndState) -> Self {
+        match state {
+            JumpingEndState::Jumping(jumping) => jumping.into(),
+            JumpingEndState::Landing(landing) => landing.into(),
+        }
     }
 }
 
