@@ -365,6 +365,7 @@ impl RedHatBoy {
 pub struct Walk {
     boy: RedHatBoy,
     background: engine::Image,
+    stone: engine::Image,
 }
 
 pub enum WalkTheDog {
@@ -388,6 +389,7 @@ impl Game for WalkTheDog {
                         .unwrap(),
                 );
                 let background = engine::load_image("/static/BG.png").await?;
+                let stone = engine::load_image("static/Stone.png").await?;
                 let image = Some(engine::load_image("/static/rhb.png").await?);
                 let rhb = RedHatBoy::new(
                     sheet.clone().ok_or_else(|| anyhow!("No Sheet Present"))?,
@@ -396,6 +398,7 @@ impl Game for WalkTheDog {
                 Ok(Box::new(WalkTheDog::Loaded(Walk {
                     boy: rhb,
                     background: engine::Image::new(background, Point { x: 0, y: 0 }),
+                    stone: engine::Image::new(stone, Point { x: 150, y: 546 }),
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized!")),
@@ -428,6 +431,7 @@ impl Game for WalkTheDog {
         if let WalkTheDog::Loaded(walk) = self {
             walk.background.draw(renderer);
             walk.boy.draw(renderer);
+            walk.stone.draw(renderer);
         }
     }
 }
