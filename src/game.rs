@@ -343,6 +343,13 @@ impl RedHatBoy {
                 height: sprite.frame.h.into(),
             },
         );
+
+        renderer.draw_rect(&Rect {
+            x: self.state_machine.context().position.x.into(),
+            y: self.state_machine.context().position.y.into(),
+            width: sprite.frame.w.into(),
+            height: sprite.frame.h.into(),
+        })
     }
 
     fn update(&mut self) {
