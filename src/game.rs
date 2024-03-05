@@ -47,6 +47,10 @@ mod red_hat_boy_states {
         pub fn context(&self) -> &RedHatBoyContext {
             &self.context
         }
+
+        fn update_context(&mut self, frames: u8) {
+            self.context = self.context.update(frames);
+        }
     }
 
     #[derive(Copy, Clone)]
@@ -124,7 +128,7 @@ mod red_hat_boy_states {
             RUNNING_FRAME_NAME
         }
         pub fn update(mut self) -> Self {
-            self.context = self.context.update(RUNNING_FRAMES);
+            self.update_context(RUNNING_FRAMES);
             self
         }
         pub fn slide(self) -> RedHatBoyState<Sliding> {
@@ -146,7 +150,7 @@ mod red_hat_boy_states {
             SLIDING_FRAME_NAME
         }
         pub fn update(mut self) -> SlidingEndState {
-            self.context = self.context.update(SLIDING_FRAMES);
+            self.update_context(SLIDING_FRAMES);
             if self.context.frame >= SLIDING_FRAMES {
                 SlidingEndState::Complete(self.stand())
             } else {
@@ -171,7 +175,7 @@ mod red_hat_boy_states {
             JUMPING_FRAME_NAME
         }
         pub fn update(mut self) -> JumpingEndState {
-            self.context = self.context.update(JUMPING_FRAMES);
+            self.update_context(JUMPING_FRAMES);
             if self.context.position.y >= FLOOR {
                 JumpingEndState::Landing(self.land())
             } else {
