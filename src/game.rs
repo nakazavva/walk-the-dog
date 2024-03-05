@@ -26,18 +26,6 @@ mod red_hat_boy_states {
     const GRAVITY: i16 = 1;
 
     #[derive(Copy, Clone)]
-    pub struct Idle;
-
-    #[derive(Copy, Clone)]
-    pub struct Running;
-
-    #[derive(Copy, Clone)]
-    pub struct Sliding;
-
-    #[derive(Copy, Clone)]
-    pub struct Jumping;
-
-    #[derive(Copy, Clone)]
     pub struct RedHatBoyState<S> {
         context: RedHatBoyContext,
         _state: S,
@@ -92,6 +80,9 @@ mod red_hat_boy_states {
         }
     }
 
+    #[derive(Copy, Clone)]
+    pub struct Idle;
+
     impl RedHatBoyState<Idle> {
         pub fn new() -> Self {
             RedHatBoyState {
@@ -123,6 +114,9 @@ mod red_hat_boy_states {
         }
     }
 
+    #[derive(Copy, Clone)]
+    pub struct Running;
+
     impl RedHatBoyState<Running> {
         pub fn frame_name(&self) -> &str {
             RUNNING_FRAME_NAME
@@ -145,6 +139,14 @@ mod red_hat_boy_states {
         }
     }
 
+    #[derive(Copy, Clone)]
+    pub struct Sliding;
+
+    pub enum SlidingEndState {
+        Complete(RedHatBoyState<Running>),
+        Sliding(RedHatBoyState<Sliding>),
+    }
+
     impl RedHatBoyState<Sliding> {
         pub fn frame_name(&self) -> &str {
             SLIDING_FRAME_NAME
@@ -165,9 +167,13 @@ mod red_hat_boy_states {
             }
         }
     }
-    pub enum SlidingEndState {
-        Complete(RedHatBoyState<Running>),
-        Sliding(RedHatBoyState<Sliding>),
+
+    #[derive(Copy, Clone)]
+    pub struct Jumping;
+
+    pub enum JumpingEndState {
+        Jumping(RedHatBoyState<Jumping>),
+        Landing(RedHatBoyState<Running>),
     }
 
     impl RedHatBoyState<Jumping> {
@@ -188,11 +194,6 @@ mod red_hat_boy_states {
                 _state: Running,
             }
         }
-    }
-
-    pub enum JumpingEndState {
-        Jumping(RedHatBoyState<Jumping>),
-        Landing(RedHatBoyState<Running>),
     }
 }
 
