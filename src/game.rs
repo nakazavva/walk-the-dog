@@ -33,7 +33,8 @@ use self::red_hat_boy_states::*;
 mod red_hat_boy_states {
     use crate::engine::Point;
 
-    const FLOOR: i16 = 475;
+    const FLOOR: i16 = 479;
+    const STARTING_POINT: i16 = -20;
     const IDLE_FRAME_NAME: &str = "Idle";
     const RUNNING_FRAME_NAME: &str = "Run";
     const IDLE_FRAMES: u8 = 29;
@@ -114,7 +115,10 @@ mod red_hat_boy_states {
             RedHatBoyState {
                 context: RedHatBoyContext {
                     frame: 0,
-                    position: Point { x: 0, y: FLOOR },
+                    position: Point {
+                        x: STARTING_POINT,
+                        y: FLOOR,
+                    },
                     velocity: Point { x: 0, y: 0 },
                 },
                 _state: Idle {},
