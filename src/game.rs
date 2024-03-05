@@ -1,32 +1,10 @@
 use crate::{
-    browser, engine,
-    engine::{Game, KeyState, Point, Rect, Renderer},
+    browser,
+    engine::{self, Cell, Game, KeyState, Point, Rect, Renderer, Sheet},
 };
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use serde::Deserialize;
-use std::collections::HashMap;
 use web_sys::HtmlImageElement;
-
-#[derive(Deserialize, Clone)]
-struct SheetRect {
-    x: u16,
-    y: u16,
-    w: u16,
-    h: u16,
-}
-
-#[derive(Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-struct Cell {
-    frame: SheetRect,
-    sprite_source_size: SheetRect,
-}
-
-#[derive(Deserialize, Clone)]
-struct Sheet {
-    frames: HashMap<String, Cell>,
-}
 
 use self::red_hat_boy_states::*;
 

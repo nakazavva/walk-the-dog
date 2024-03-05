@@ -5,9 +5,30 @@ use futures::channel::{
     mpsc::{unbounded, UnboundedReceiver},
     oneshot::channel,
 };
+use serde::Deserialize;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Mutex};
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+
+#[derive(Deserialize, Clone)]
+pub struct SheetRect {
+    pub x: u16,
+    pub y: u16,
+    pub w: u16,
+    pub h: u16,
+}
+
+#[derive(Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Cell {
+    pub frame: SheetRect,
+    pub sprite_source_size: SheetRect,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct Sheet {
+    pub frames: HashMap<String, Cell>,
+}
 
 pub async fn load_image(source: &str) -> Result<HtmlImageElement> {
     let image = browser::new_image()?;
