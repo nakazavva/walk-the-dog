@@ -440,11 +440,9 @@ impl Game for WalkTheDog {
             if keystate.is_pressed("ArrowDown") {
                 walk.boy.slide();
             }
-            if keystate.is_pressed("ArrowUp") {}
             if keystate.is_pressed("ArrowRight") {
                 walk.boy.run_right();
             }
-            if keystate.is_pressed("ArrowLeft") {}
             if keystate.is_pressed("Space") {
                 walk.boy.jump();
             }
