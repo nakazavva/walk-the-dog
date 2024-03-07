@@ -80,6 +80,11 @@ mod red_hat_boy_states {
             self.velocity.y = y;
             self
         }
+
+        fn stop(mut self) -> Self {
+            self.velocity.x = 0;
+            self
+        }
     }
 
     #[derive(Copy, Clone)]
@@ -142,7 +147,7 @@ mod red_hat_boy_states {
 
         pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().stop(),
                 _state: Falling {},
             }
         }
@@ -178,7 +183,7 @@ mod red_hat_boy_states {
 
         pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().stop(),
                 _state: Falling {},
             }
         }
@@ -213,7 +218,7 @@ mod red_hat_boy_states {
 
         pub fn knock_out(self) -> RedHatBoyState<Falling> {
             RedHatBoyState {
-                context: self.context,
+                context: self.context.reset_frame().stop(),
                 _state: Falling {},
             }
         }
