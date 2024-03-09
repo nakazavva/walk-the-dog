@@ -227,13 +227,39 @@ mod red_hat_boy_states {
     #[derive(Copy, Clone)]
     pub struct Falling;
 
+    pub enum FallingEndState {
+        Falling(RedHatBoyState<Falling>),
+        KnockedOut(RedHatBoyState<KnockedOut>),
+    }
+
     impl RedHatBoyState<Falling> {
         pub fn frame_name(&self) -> &str {
             FALLING_FRAME_NAME
         }
-        pub fn update(mut self) -> Self {
+
+        pub fn knock_out(self) -> RedHatBoyState<KnockedOut> {
+            RedHatBoyState {
+                context: self.context,
+                _state: KnockedOut,
+            }
+        }
+
+        pub fn update(mut self) -> FallingEndState {
             self.update_context(FALLING_FRAMES);
-            self
+            if self.context.frame >= FALLING_FRAMES {
+                FallingEndState::KnockedOut(self.knock_out())
+            } else {
+                FallingEndState::Falling(self)
+            }
+        }
+    }
+
+    #[derive(Copy, Clone)]
+    pub struct KnockedOut;
+
+    impl RedHatBoyState<KnockedOut> {
+        pub fn frame_name(&self) -> &str {
+            FALLING_FRAME_NAME
         }
     }
 }
@@ -245,6 +271,7 @@ enum RedHatBoyStateMachine {
     Sliding(RedHatBoyState<Sliding>),
     Jumping(RedHatBoyState<Jumping>),
     Falling(RedHatBoyState<Falling>),
+    KnockedOut(RedHatBoyState<KnockedOut>),
 }
 
 pub enum Event {
@@ -279,6 +306,7 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Sliding(state) => state.frame_name(),
             RedHatBoyStateMachine::Jumping(state) => state.frame_name(),
             RedHatBoyStateMachine::Falling(state) => state.frame_name(),
+            RedHatBoyStateMachine::KnockedOut(state) => state.frame_name(),
         }
     }
 
@@ -289,6 +317,7 @@ impl RedHatBoyStateMachine {
             RedHatBoyStateMachine::Sliding(state) => &state.context(),
             RedHatBoyStateMachine::Jumping(state) => &state.context(),
             RedHatBoyStateMachine::Falling(state) => &state.context(),
+            RedHatBoyStateMachine::KnockedOut(state) => &state.context(),
         }
     }
 
@@ -341,6 +370,21 @@ impl From<JumpingEndState> for RedHatBoyStateMachine {
 impl From<RedHatBoyState<Falling>> for RedHatBoyStateMachine {
     fn from(state: RedHatBoyState<Falling>) -> Self {
         RedHatBoyStateMachine::Falling(state)
+    }
+}
+
+impl From<RedHatBoyState<KnockedOut>> for RedHatBoyStateMachine {
+    fn from(state: RedHatBoyState<KnockedOut>) -> Self {
+        RedHatBoyStateMachine::KnockedOut(state)
+    }
+}
+
+impl From<FallingEndState> for RedHatBoyStateMachine {
+    fn from(state: FallingEndState) -> Self {
+        match state {
+            FallingEndState::Falling(state) => state.into(),
+            FallingEndState::KnockedOut(state) => state.into(),
+        }
     }
 }
 
