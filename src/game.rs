@@ -4,6 +4,7 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use wasm_bindgen_futures::js_sys::Intl::PluralRules;
 use web_sys::HtmlImageElement;
 
 use self::red_hat_boy_states::*;
@@ -493,12 +494,47 @@ impl Platform {
             position,
         }
     }
+
+    fn draw(&self, renderer: &Renderer) {
+        let platform = self
+            .sheet
+            .frames
+            .get("13.png")
+            .expect("13.png does not exist");
+
+        renderer.draw_image(
+            &self.image,
+            &Rect {
+                x: platform.frame.x.into(),
+                y: platform.frame.y.into(),
+                width: (platform.frame.w * 3).into(),
+                height: platform.frame.h.into(),
+            },
+            &self.bounding_box(),
+        )
+    }
+
+    fn bounding_box(&self) -> Rect {
+        let platform = self
+            .sheet
+            .frames
+            .get("13.png")
+            .expect("13.png does not exist");
+
+        Rect {
+            x: self.position.x.into(),
+            y: self.position.y.into(),
+            width: (platform.frame.w * 3).into(),
+            height: platform.frame.h.into(),
+        }
+    }
 }
 
 pub struct Walk {
     boy: RedHatBoy,
     background: engine::Image,
     stone: engine::Image,
+    platform: Platform,
 }
 
 pub enum WalkTheDog {
@@ -521,6 +557,19 @@ impl Game for WalkTheDog {
                     serde_wasm_bindgen::from_value(browser::fetch_json("/static/rhb.json").await?)
                         .unwrap(),
                 );
+                let platform_sheet = Some(
+                    serde_wasm_bindgen::from_value(
+                        browser::fetch_json("/static/tiles.json").await?,
+                    )
+                    .unwrap(),
+                );
+                let platform = Platform::new(
+                    platform_sheet
+                        .clone()
+                        .ok_or_else(|| anyhow!("No Platform Sheet Present"))?,
+                    engine::load_image("/static/tiles.png").await?,
+                    Point { x: 200, y: 400 },
+                );
                 let background = engine::load_image("/static/BG.png").await?;
                 let stone = engine::load_image("static/Stone.png").await?;
                 let image = Some(engine::load_image("/static/rhb.png").await?);
@@ -532,6 +581,7 @@ impl Game for WalkTheDog {
                     boy: rhb,
                     background: engine::Image::new(background, Point { x: 0, y: 0 }),
                     stone: engine::Image::new(stone, Point { x: 150, y: 546 }),
+                    platform,
                 })))
             }
             WalkTheDog::Loaded(_) => Err(anyhow!("Error: Game is already initialized!")),
@@ -571,6 +621,7 @@ impl Game for WalkTheDog {
             walk.background.draw(renderer);
             walk.boy.draw(renderer);
             walk.stone.draw(renderer);
+            walk.platform.draw(renderer);
         }
     }
 }
