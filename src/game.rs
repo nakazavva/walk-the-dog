@@ -479,6 +479,22 @@ impl RedHatBoy {
     }
 }
 
+struct Platform {
+    sheet: Sheet,
+    image: HtmlImageElement,
+    position: Point,
+}
+
+impl Platform {
+    fn new(sheet: Sheet, image: HtmlImageElement, position: Point) -> Self {
+        Platform {
+            sheet,
+            image,
+            position,
+        }
+    }
+}
+
 pub struct Walk {
     boy: RedHatBoy,
     background: engine::Image,
