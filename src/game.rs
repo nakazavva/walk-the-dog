@@ -281,6 +281,7 @@ pub enum Event {
     Update,
     Jump,
     KnockOut,
+    Land,
 }
 
 impl RedHatBoyStateMachine {
@@ -297,6 +298,7 @@ impl RedHatBoyStateMachine {
             (RedHatBoyStateMachine::Sliding(state), Event::KnockOut) => state.knock_out().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::Update) => state.update().into(),
             (RedHatBoyStateMachine::Jumping(state), Event::KnockOut) => state.knock_out().into(),
+            (RedHatBoyStateMachine::Jumping(state), Event::Land) => state.land().into(),
             _ => self,
         }
     }
@@ -478,6 +480,10 @@ impl RedHatBoy {
     fn knock_out(&mut self) {
         self.state_machine = self.state_machine.transition(Event::KnockOut);
     }
+
+    fn land(&mut self) {
+        self.state_machine = self.state_machine.transition(Event::Land);
+    }
 }
 
 struct Platform {
@@ -599,6 +605,14 @@ impl Game for WalkTheDog {
                 walk.boy.jump();
             }
             walk.boy.update();
+
+            if walk
+                .boy
+                .bounding_box()
+                .intersects(&walk.platform.bounding_box())
+            {
+                walk.boy.land();
+            }
 
             if walk
                 .boy
