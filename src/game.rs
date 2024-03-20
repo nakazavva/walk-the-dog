@@ -562,13 +562,15 @@ impl Platform {
                 width: (platform.frame.w * 3).into(),
                 height: platform.frame.h.into(),
             },
-            &self.bounding_box(),
+            &self.destination_box(),
         );
 
-        renderer.draw_rect(&self.bounding_box());
+        for bounding_box in &self.bounding_boxes() {
+            renderer.draw_rect(bounding_box);
+        }
     }
 
-    fn bounding_box(&self) -> Rect {
+    fn destination_box(&self) -> Rect {
         let platform = self
             .sheet
             .frames
@@ -581,6 +583,32 @@ impl Platform {
             width: (platform.frame.w * 3).into(),
             height: platform.frame.h.into(),
         }
+    }
+
+    fn bounding_boxes(&self) -> Vec<Rect> {
+        const X_OFFSET: f32 = 60.0;
+        const END_HEIGHT: f32 = 54.0;
+        let destination_box = self.destination_box();
+        let bounding_box_one = Rect {
+            x: destination_box.x,
+            y: destination_box.y,
+            width: X_OFFSET,
+            height: END_HEIGHT,
+        };
+        let bounding_box_two = Rect {
+            x: destination_box.x + X_OFFSET,
+            y: destination_box.y,
+            width: destination_box.width - (X_OFFSET * 2.0),
+            height: destination_box.height,
+        };
+        let bounding_box_three = Rect {
+            x: destination_box.x + destination_box.width - X_OFFSET,
+            y: destination_box.y,
+            width: X_OFFSET,
+            height: END_HEIGHT,
+        };
+
+        vec![bounding_box_one, bounding_box_two, bounding_box_three]
     }
 }
 
@@ -654,27 +682,26 @@ impl Game for WalkTheDog {
             }
             walk.boy.update();
 
-            if walk
-                .boy
-                .bounding_box()
-                .intersects(&walk.platform.bounding_box())
-            {
-                if walk.boy.velocity_y() > 0 && walk.boy.pos_y() < walk.platform.position.y {
-                    walk.boy.land_on(walk.platform.bounding_box().y);
-                } else {
-                    walk.boy.knock_out();
+            for bounding_box in &walk.platform.bounding_boxes() {
+                if walk.boy.bounding_box().intersects(bounding_box) {
+                    if walk.boy.velocity_y() > 0 && walk.boy.pos_y() < walk.platform.position.y {
+                        walk.boy.land_on(bounding_box.y);
+                    } else {
+                        walk.boy.knock_out();
+                    }
                 }
             }
 
-            // if walk
-            //     .boy
-            //     .bounding_box()
-            //     .intersects(walk.stone.bounding_box())
-            // {
-            //     walk.boy.knock_out();
-            // }
+            if walk
+                .boy
+                .bounding_box()
+                .intersects(walk.stone.bounding_box())
+            {
+                walk.boy.knock_out();
+            }
         }
     }
+
     fn draw(&self, renderer: &Renderer) {
         renderer.clear(&Rect {
             x: 0.0,
