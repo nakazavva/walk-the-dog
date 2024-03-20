@@ -20,7 +20,7 @@ mod red_hat_boy_states {
     const RUNNING_FRAME_NAME: &str = "Run";
     const IDLE_FRAMES: u8 = 29;
     const RUNNING_FRAMES: u8 = 23;
-    const RUNNING_SPEED: i16 = 3;
+    const RUNNING_SPEED: i16 = 4;
     const SLIDING_FRAMES: u8 = 14;
     const SLIDING_FRAME_NAME: &str = "Slide";
     const JUMPING_FRAME_NAME: &str = "Jump";
@@ -89,6 +89,7 @@ mod red_hat_boy_states {
 
         fn stop(mut self) -> Self {
             self.velocity.x = 0;
+            self.velocity.y = 0;
             self
         }
 
@@ -630,6 +631,10 @@ impl WalkTheDog {
     }
 }
 
+const LOW_PLATFORM: i16 = 420;
+const HIGH_PLATFORM: i16 = 375;
+const FIRST_PLATFORM: i16 = 370;
+
 #[async_trait(?Send)]
 impl Game for WalkTheDog {
     async fn initialize(&self) -> Result<Box<dyn Game>> {
@@ -650,7 +655,10 @@ impl Game for WalkTheDog {
                         .clone()
                         .ok_or_else(|| anyhow!("No Platform Sheet Present"))?,
                     engine::load_image("/static/tiles.png").await?,
-                    Point { x: 200, y: 400 },
+                    Point {
+                        x: FIRST_PLATFORM,
+                        y: LOW_PLATFORM,
+                    },
                 );
                 let background = engine::load_image("/static/BG.png").await?;
                 let stone = engine::load_image("static/Stone.png").await?;
