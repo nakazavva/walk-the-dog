@@ -623,6 +623,12 @@ pub struct Walk {
     platform: Platform,
 }
 
+impl Walk {
+    fn velocity(&self) -> i16 {
+        -self.boy.walking_speed()
+    }
+}
+
 pub enum WalkTheDog {
     Loading,
     Loaded(Walk),
@@ -692,6 +698,9 @@ impl Game for WalkTheDog {
                 walk.boy.jump();
             }
             walk.boy.update();
+            walk.platform.position.x += walk.velocity();
+            walk.stone.move_horizontally(walk.velocity());
+            walk.background.move_horizontally(walk.velocity());
 
             for bounding_box in &walk.platform.bounding_boxes() {
                 if walk.boy.bounding_box().intersects(bounding_box) {
