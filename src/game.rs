@@ -499,6 +499,10 @@ impl RedHatBoy {
         bounding_box
     }
 
+    fn walking_speed(&self) -> i16 {
+        self.state_machine.context().velocity.x
+    }
+
     fn pos_y(&self) -> i16 {
         self.state_machine.context().position.y
     }
